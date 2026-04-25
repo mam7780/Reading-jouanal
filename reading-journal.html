@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <meta name="theme-color" content="#2C1810"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="독서일기"/>
+  <title>나의 독서 일기</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700&display=swap" rel="stylesheet"/>
+  <style>
+    @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+    :root {
+      --bg: #F5EFE6;
+      --card: #ffffff;
+      --brown-dark: #2C1810;
+      --brown: #C8853A;
+      --text: #2C1810;
+      --text-sub: #7A6A5A;
+      --text-muted: #A0897A;
+      --border: #E0D5C5;
+      --input-bg: #FDFAF5;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      font-family: 'Pretendard', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      min-height: 100dvh;
+    }
+
+    /* 헤더 */
+    header {
+      background: var(--brown-dark);
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 99;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.25);
+    }
+    .header-title {
+      display: flex; align-items: center; gap: 8px; cursor: pointer;
+    }
+    .header-title span {
+      font-family: 'Nanum Myeongjo', serif;
+      font-size: 19px; color: #F5EFE6; font-weight: 700;
+    }
+    .btn-header {
+      background: var(--brown); color: #fff; border: none;
+      border-radius: 8px; padding: 9px 16px; font-size: 14px;
+      font-weight: 700; cursor: pointer; font-family: inherit;
+    }
+    .btn-back {
+      background: none; border: none; color: #F5EFE6;
+      font-size: 14px; cursor: pointer; font-family: inherit; padding: 8px 0;
+    }
+
+    main { max-width: 520px; margin: 0 auto; padding: 24px 16px 100px; }
+
+    /* 카드 */
+    .card {
+      background: var(--card); border-radius: 16px; padding: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.06); margin-bottom: 14px;
+    }
+
+    /* 책장 그리드 */
+    .shelf-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 24px;
+    }
+    .book-item {
+      cursor: pointer; display: flex; flex-direction: column;
+      align-items: center; gap: 8px;
+      transition: transform 0.15s;
+    }
+    .book-item:active { transform: scale(0.95); }
+
+    /* 표지 */
+    .cover {
+      border-radius: 6px; overflow: hidden;
+      box-shadow: 3px 5px 16px rgba(0,0,0,0.22); flex-shrink: 0;
+    }
+    .cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .cover-placeholder {
+      width: 100%; height: 100%;
+      display: flex; align-items: center; justify-content: center; padding: 8px;
+      font-family: 'Nanum Myeongjo', serif; font-size: 11px;
+      color: #fff; text-align: center; line-height: 1.5;
+    }
+
+    /* 별점 */
+    .stars { display: flex; gap: 2px; }
+    .star { font-size: 22px; cursor: pointer; line-height: 1; transition: color 0.1s; }
+    .star.readonly { cursor: default; }
+
+    /* 입력 */
+    .input {
+      width: 100%; padding: 13px 14px; border-radius: 10px;
+      border: 1.5px solid var(--border); background: var(--input-bg);
+      font-family: inherit; font-size: 15px; color: var(--text); outline: none;
+      transition: border-color 0.15s;
+    }
+    .input:focus { border-color: var(--brown); }
+    textarea.input { resize: none; }
+
+    label.field-label {
+      font-size: 13px; font-weight: 700; color: #5A4A3A;
+      display: block; margin-bottom: 8px;
+    }
+
+    /* 버튼 */
+    .btn-brown {
+      background: var(--brown); color: #fff; border: none;
+      border-radius: 10px; padding: 14px; font-size: 15px;
+      font-weight: 700; cursor: pointer; font-family: inherit; width: 100%;
+    }
+    .btn-brown:disabled { opacity: 0.4; }
+    .btn-outline {
+      background: none; color: var(--text); border: 1.5px solid #C8C0B4;
+      border-radius: 10px; padding: 12px; font-size: 14px;
+      font-weight: 600; cursor: pointer; font-family: inherit;
+    }
+    .btn-outline.full { width: 100%; }
+    .btn-sm {
+      background: none; color: var(--text); border: 1.5px solid #C8C0B4;
+      border-radius: 8px; padding: 8px 14px; font-size: 13px;
+      font-weight: 600; cursor: pointer; font-family: inherit;
+    }
+    .btn-danger {
+      width: 100%; background: none; border: 1.5px solid #E8A0A0;
+      color: #C06060; border-radius: 10px; padding: 13px;
+      font-size: 14px; cursor: pointer; font-family: inherit;
+    }
+    .btn-del {
+      position: absolute; top: 8px; right: 10px;
+      background: none; border: none; font-size: 20px;
+      color: #CCC; cursor: pointer; line-height: 1; padding: 0;
+    }
+
+    /* 문구 카드 */
+    .quote-card {
+      background: var(--input-bg); border: 1px solid #E8DFD0;
+      border-radius: 12px; padding: 14px; margin-bottom: 10px; position: relative;
+    }
+    .quote-card img { width: 100%; border-radius: 8px; margin-bottom: 10px; max-height: 240px; object-fit: cover; display: block; }
+    .quote-card p {
+      font-family: 'Nanum Myeongjo', serif; font-size: 14px;
+      color: #4A3728; line-height: 1.85; font-style: italic;
+    }
+
+    /* 빈 책장 */
+    .empty {
+      text-align: center; padding: 70px 20px;
+      background: #FAF5EE; border-radius: 18px;
+      border: 2px dashed #D4C4B0;
+    }
+    .empty .emoji { font-size: 52px; margin-bottom: 14px; }
+    .empty h3 { font-family: 'Nanum Myeongjo', serif; font-size: 16px; color: #8A7060; margin-bottom: 6px; }
+    .empty p { font-size: 13px; color: #B0A090; margin-bottom: 20px; }
+
+    /* 색상 팔레트 */
+    .color-palette { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 4px; }
+    .color-dot {
+      width: 26px; height: 26px; border-radius: 50%; cursor: pointer;
+      border: 3px solid transparent; transition: border-color 0.1s;
+    }
+    .color-dot.active { border-color: var(--brown-dark); }
+
+    /* 문구 추가 박스 */
+    .quote-add-box {
+      background: var(--input-bg); border: 1px solid #E8DFD0;
+      border-radius: 12px; padding: 14px; margin-top: 8px;
+    }
+
+    /* 그리드 2컬럼 */
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+    /* 설치 안내 배너 */
+    #install-banner {
+      display: none;
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: var(--brown-dark); color: #F5EFE6;
+      padding: 14px 20px; z-index: 200;
+      flex-direction: column; gap: 10px;
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.2);
+    }
+    #install-banner p { font-size: 13px; line-height: 1.5; }
+    #install-banner strong { color: var(--brown); }
+    .banner-btns { display: flex; gap: 8px; }
+    .btn-install {
+      background: var(--brown); color: #fff; border: none;
+      border-radius: 8px; padding: 10px 18px; font-size: 13px;
+      font-weight: 700; cursor: pointer; font-family: inherit;
+    }
+    .btn-dismiss {
+      background: none; color: #aaa; border: 1px solid #555;
+      border-radius: 8px; padding: 10px 14px; font-size: 13px;
+      cursor: pointer; font-family: inherit;
+    }
+
+    /* 뷰 전환 */
+    .view { display: none; }
+    .view.active { display: block; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-title" onclick="goShelf()">
+    <span style="font-size:20px">📚</span>
+    <span>나의 독서 일기</span>
+  </div>
+  <button class="btn-header" id="header-btn" onclick="goAdd()">+ 추가</button>
+</header>
+
+<main>
+  <!-- 책장 -->
+  <div class="view active" id="view-shelf">
+    <div style="margin-bottom:20px">
+      <h2 style="font-family:'Nanum Myeongjo',serif;font-size:22px;margin-bottom:2px">내 책장</h2>
+      <p style="color:#9A8070;font-size:13px" id="book-count">총 0권</p>
+    </div>
+    <div id="shelf-content"></div>
+  </div>
+
+  <!-- 상세 -->
+  <div class="view" id="view-detail">
+    <div id="detail-content"></div>
+  </div>
+
+  <!-- 추가 -->
+  <div class="view" id="view-add">
+    <h2 style="font-family:'Nanum Myeongjo',serif;font-size:22px;margin-bottom:20px">새 책 기록하기</h2>
+
+    <!-- 표지 -->
+    <div class="card">
+      <label class="field-label">표지 이미지</label>
+      <div style="display:flex;gap:16px;align-items:flex-start">
+        <div id="cover-preview" onclick="document.getElementById('cover-input').click()"
+          style="width:80px;height:112px;border-radius:6px;overflow:hidden;
+            box-shadow:3px 4px 12px rgba(0,0,0,0.18);cursor:pointer;
+            display:flex;align-items:center;justify-content:center;
+            flex-shrink:0;background:#C8853A;font-size:26px">📷</div>
+        <div style="flex:1">
+          <input type="file" id="cover-input" accept="image/*" style="display:none" onchange="onCoverChange(event)"/>
+          <button class="btn-outline full" style="margin-bottom:10px" onclick="document.getElementById('cover-input').click()">
+            📷 갤러리 / 카메라
+          </button>
+          <div class="color-palette" id="color-palette"></div>
+          <p style="font-size:11px;color:#A0897A;margin-top:4px">사진 없을 땐 색상 선택</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 제목 -->
+    <div class="card">
+      <label class="field-label">책 제목 *</label>
+      <input class="input" id="form-title" placeholder="책 제목을 입력하세요" oninput="checkSaveBtn()"/>
+    </div>
+
+    <!-- 저자 -->
+    <div class="card">
+      <label class="field-label">저자</label>
+      <input class="input" id="form-author" placeholder="저자 이름"/>
+    </div>
+
+    <!-- 날짜 -->
+    <div class="card">
+      <label class="field-label">읽은 날짜</label>
+      <input class="input" type="date" id="form-date"/>
+    </div>
+
+    <!-- 별점 -->
+    <div class="card">
+      <label class="field-label">별점</label>
+      <div class="stars" id="form-stars"></div>
+    </div>
+
+    <!-- 서평 -->
+    <div class="card">
+      <label class="field-label">서평</label>
+      <textarea class="input" id="form-review" rows="5" placeholder="이 책에 대한 감상을 자유롭게 써보세요..."></textarea>
+    </div>
+
+    <!-- 인상적인 문구 -->
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <label class="field-label" style="margin:0">인상적인 문구</label>
+        <button class="btn-sm" onclick="showAddQuote('form')">+ 추가</button>
+      </div>
+      <div id="form-quotes"></div>
+      <div id="form-quote-input" style="display:none" class="quote-add-box">
+        <textarea class="input" id="fq-text" rows="3" placeholder="인상적인 문구를 입력하세요" style="margin-bottom:10px"></textarea>
+        <input type="file" id="fq-img-input" accept="image/*" style="display:none" onchange="onFqImgChange(event)"/>
+        <button class="btn-outline full" style="margin-bottom:10px" onclick="document.getElementById('fq-img-input').click()">
+          📷 갤러리 / 카메라에서 사진 선택
+        </button>
+        <img id="fq-preview" style="display:none;width:100%;border-radius:8px;margin-bottom:10px;max-height:180px;object-fit:cover"/>
+        <div class="grid2">
+          <button class="btn-brown" onclick="addFormQuote()">추가</button>
+          <button class="btn-outline" onclick="cancelFormQuote()">취소</button>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-brown" id="save-btn" onclick="saveBook()" disabled style="font-size:16px;padding:16px;border-radius:12px">
+      저장하기
+    </button>
+  </div>
+</main>
+
+<!-- 설치 안내 배너 -->
+<div id="install-banner">
+  <p>📱 <strong>홈 화면에 추가</strong>하면 앱처럼 사용할 수 있어요!<br>
+  크롬 메뉴 → <strong>"홈 화면에 추가"</strong> 선택</p>
+  <div class="banner-btns">
+    <button class="btn-install" id="install-btn">홈 화면에 추가</button>
+    <button class="btn-dismiss" onclick="dismissBanner()">나중에</button>
+  </div>
+</div>
+
+<script>
+// ── 상수 ──
+const STORAGE_KEY = 'reading-journal-standalone-v1';
+const COLORS = ['#C8853A','#6B8E6B','#7A6A9E','#C06070','#5B8FA8','#A08050','#8E6B6B'];
+
+// ── 상태 ──
+let books = [];
+let currentView = 'shelf';
+let selId = null;
+let formCover = null;
+let formColor = COLORS[0];
+let formRating = 0;
+let formQuotes = [];
+let fqImg = null;
+let dqImg = null;
+let deferredPrompt = null;
+
+// ── 저장/로드 ──
+function load() {
+  try {
+    const d = localStorage.getItem(STORAGE_KEY);
+    if (d) books = JSON.parse(d);
+  } catch(e) { books = []; }
+}
+function persist() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(books)); } catch(e) {}
+}
+
+// ── 날짜 포맷 ──
+function fmt(d) {
+  if (!d) return '';
+  const dt = new Date(d);
+  return `${dt.getFullYear()}. ${dt.getMonth()+1}. ${dt.getDate()}`;
+}
+
+// ── 파일 → base64 ──
+function toBase64(file) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = e => res(e.target.result);
+    r.onerror = () => rej();
+    r.readAsDataURL(file);
+  });
+}
+
+// ── 별점 렌더 ──
+function renderStars(containerId, value, onChange) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = '';
+  [1,2,3,4,5].forEach(s => {
+    const span = document.createElement('span');
+    span.className = 'star' + (onChange ? '' : ' readonly');
+    span.textContent = '★';
+    span.style.color = s <= value ? '#C8853A' : '#DDD';
+    if (onChange) span.onclick = () => { onChange(s); renderStars(containerId, s, onChange); };
+    el.appendChild(span);
+  });
+}
+
+// ── 표지 HTML ──
+function coverHTML(book, size) {
+  const h = Math.round(size * 1.4);
+  const bg = book.cover ? 'transparent' : (book.coverColor || COLORS[0]);
+  const inner = book.cover
+    ? `<img src="${book.cover}" alt="" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display='none'">`
+    : `<div class="cover-placeholder">${book.title}</div>`;
+  return `<div class="cover" style="width:${size}px;height:${h}px;background:${bg}">${inner}</div>`;
+}
+
+// ── 뷰 전환 ──
+function showView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  currentView = name;
+  const btn = document.getElementById('header-btn');
+  if (name === 'shelf') {
+    btn.textContent = '+ 추가'; btn.onclick = goAdd; btn.style.display = '';
+  } else {
+    btn.textContent = '← 책장'; btn.onclick = goShelf;
+  }
+  window.scrollTo(0, 0);
+}
+
+// ── 책장 ──
+function renderShelf() {
+  document.getElementById('book-count').textContent = `총 ${books.length}권`;
+  const el = document.getElementById('shelf-content');
+  if (books.length === 0) {
+    el.innerHTML = `
+      <div class="empty">
+        <div class="emoji">📖</div>
+        <h3>아직 기록된 책이 없어요</h3>
+        <p>첫 번째 책을 추가해보세요</p>
+        <button class="btn-brown" style="width:auto;padding:12px 28px" onclick="goAdd()">+ 책 추가하기</button>
+      </div>`;
+    return;
+  }
+  el.innerHTML = `<div class="shelf-grid">${books.map(b => `
+    <div class="book-item" onclick="goDetail('${b.id}')">
+      ${coverHTML(b, 90)}
+      <div style="text-align:center;width:100%">
+        <p style="font-size:12px;font-weight:700;color:#2C1810;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(b.title)}</p>
+        <p style="font-size:11px;color:#999;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(b.author||'')}</p>
+        <div style="display:flex;gap:2px;justify-content:center">${[1,2,3,4,5].map(s=>`<span style="font-size:16px;color:${s<=(b.rating||0)?'#C8853A':'#DDD'}">★</span>`).join('')}</div>
+      </div>
+    </div>`).join('')}</div>`;
+}
+
+function goShelf() {
+  renderShelf();
+  showView('shelf');
+}
+
+// ── 상세 ──
+function goDetail(id) {
+  selId = id;
+  dqImg = null;
+  renderDetail();
+  showView('detail');
+}
+
+function renderDetail() {
+  const b = books.find(x => x.id == selId);
+  if (!b) return;
+  const quotes = (b.quotes || []);
+  document.getElementById('detail-content').innerHTML = `
+    <div class="card" style="display:flex;gap:18px">
+      ${coverHTML(b, 80)}
+      <div style="flex:1;min-width:0">
+        <h2 style="font-family:'Nanum Myeongjo',serif;font-size:19px;color:#2C1810;margin-bottom:4px;line-height:1.3">${esc(b.title)}</h2>
+        <p style="color:#7A6A5A;font-size:14px;margin-bottom:6px">${esc(b.author||'')}</p>
+        ${b.date ? `<p style="color:#A0897A;font-size:12px;margin-bottom:6px">📅 ${fmt(b.date)}</p>` : ''}
+        <div style="display:flex;gap:2px">${[1,2,3,4,5].map(s=>`<span style="font-size:24px;color:${s<=(b.rating||0)?'#C8853A':'#DDD'}">★</span>`).join('')}</div>
+      </div>
+    </div>
+
+    ${b.review ? `
+    <div class="card">
+      <h3 style="font-family:'Nanum Myeongjo',serif;font-size:16px;color:#2C1810;margin-bottom:10px">✍️ 서평</h3>
+      <p style="font-size:14px;color:#4A3728;line-height:1.9;white-space:pre-wrap">${esc(b.review)}</p>
+    </div>` : ''}
+
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <h3 style="font-family:'Nanum Myeongjo',serif;font-size:16px;color:#2C1810">💬 인상적인 문구</h3>
+        <button class="btn-sm" onclick="showAddQuote('detail')">+ 추가</button>
+      </div>
+      <div id="detail-quotes">
+        ${quotes.length === 0 ? '<p style="color:#B0A090;font-size:13px;text-align:center;padding:16px 0">기록된 문구가 없어요</p>' : ''}
+        ${quotes.map(q => quoteCardHTML(q, true)).join('')}
+      </div>
+      <div id="detail-quote-input" style="display:none" class="quote-add-box">
+        <textarea class="input" id="dq-text" rows="3" placeholder="인상적인 문구를 입력하세요" style="margin-bottom:10px"></textarea>
+        <input type="file" id="dq-img-input" accept="image/*" style="display:none" onchange="onDqImgChange(event)"/>
+        <button class="btn-outline full" style="margin-bottom:10px" onclick="document.getElementById('dq-img-input').click()">
+          📷 갤러리 / 카메라에서 사진 선택
+        </button>
+        <img id="dq-preview" style="display:none;width:100%;border-radius:8px;margin-bottom:10px;max-height:200px;object-fit:cover"/>
+        <div class="grid2">
+          <button class="btn-brown" onclick="addDetailQuote()">저장</button>
+          <button class="btn-outline" onclick="cancelDetailQuote()">취소</button>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-danger" onclick="deleteBook('${b.id}')">이 책 삭제하기</button>
+  `;
+}
+
+function quoteCardHTML(q, showDel) {
+  return `<div class="quote-card">
+    ${q.image ? `<img src="${q.image}" alt="">` : ''}
+    ${q.text ? `<p>"${esc(q.text)}"</p>` : ''}
+    ${showDel ? `<button class="btn-del" onclick="deleteQuote('${q.id}')">×</button>` : ''}
+  </div>`;
+}
+
+function deleteQuote(qid) {
+  books = books.map(b => b.id == selId
+    ? {...b, quotes: (b.quotes||[]).filter(q => q.id != qid)} : b);
+  persist();
+  renderDetail();
+}
+
+function deleteBook(id) {
+  if (!confirm('이 책을 삭제할까요?')) return;
+  books = books.filter(b => b.id != id);
+  persist();
+  goShelf();
+}
+
+// ── 문구 추가 (상세) ──
+function showAddQuote(ctx) {
+  if (ctx === 'detail') {
+    document.getElementById('detail-quote-input').style.display = 'block';
+  } else {
+    document.getElementById('form-quote-input').style.display = 'block';
+  }
+}
+
+async function onDqImgChange(e) {
+  const f = e.target.files[0]; if (!f) return;
+  dqImg = await toBase64(f);
+  const prev = document.getElementById('dq-preview');
+  prev.src = dqImg; prev.style.display = 'block';
+}
+
+function addDetailQuote() {
+  const text = document.getElementById('dq-text').value.trim();
+  if (!text && !dqImg) return;
+  books = books.map(b => b.id == selId
+    ? {...b, quotes: [...(b.quotes||[]), {id: Date.now(), text, image: dqImg}]} : b);
+  persist();
+  dqImg = null;
+  document.getElementById('dq-text').value = '';
+  document.getElementById('dq-preview').style.display = 'none';
+  document.getElementById('dq-img-input').value = '';
+  renderDetail();
+}
+
+function cancelDetailQuote() {
+  dqImg = null;
+  document.getElementById('dq-text').value = '';
+  document.getElementById('detail-quote-input').style.display = 'none';
+  document.getElementById('dq-preview').style.display = 'none';
+}
+
+// ── 책 추가 폼 ──
+function goAdd() {
+  formCover = null; formColor = COLORS[0]; formRating = 0; formQuotes = []; fqImg = null;
+  document.getElementById('form-title').value = '';
+  document.getElementById('form-author').value = '';
+  document.getElementById('form-date').value = '';
+  document.getElementById('form-review').value = '';
+  document.getElementById('form-quotes').innerHTML = '';
+  document.getElementById('form-quote-input').style.display = 'none';
+  document.getElementById('fq-text').value = '';
+  document.getElementById('fq-preview').style.display = 'none';
+  document.getElementById('save-btn').disabled = true;
+
+  // 표지 미리보기 초기화
+  const prev = document.getElementById('cover-preview');
+  prev.innerHTML = '📷'; prev.style.background = COLORS[0];
+
+  // 색상 팔레트
+  const pal = document.getElementById('color-palette');
+  pal.innerHTML = COLORS.map((c,i) =>
+    `<div class="color-dot${i===0?' active':''}" style="background:${c}" onclick="selectColor('${c}', this)"></div>`
+  ).join('');
+
+  // 별점
+  renderStars('form-stars', 0, v => { formRating = v; });
+
+  showView('add');
+}
+
+function selectColor(c, el) {
+  formColor = c; formCover = null;
+  document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+  el.classList.add('active');
+  const prev = document.getElementById('cover-preview');
+  prev.innerHTML = '📷'; prev.style.background = c;
+}
+
+async function onCoverChange(e) {
+  const f = e.target.files[0]; if (!f) return;
+  formCover = await toBase64(f);
+  const prev = document.getElementById('cover-preview');
+  prev.innerHTML = `<img src="${formCover}" style="width:100%;height:100%;object-fit:cover">`;
+  prev.style.background = 'transparent';
+}
+
+function checkSaveBtn() {
+  document.getElementById('save-btn').disabled = !document.getElementById('form-title').value.trim();
+}
+
+// ── 폼 문구 ──
+async function onFqImgChange(e) {
+  const f = e.target.files[0]; if (!f) return;
+  fqImg = await toBase64(f);
+  const prev = document.getElementById('fq-preview');
+  prev.src = fqImg; prev.style.display = 'block';
+}
+
+function addFormQuote() {
+  const text = document.getElementById('fq-text').value.trim();
+  if (!text && !fqImg) return;
+  formQuotes.push({id: Date.now(), text, image: fqImg});
+  renderFormQuotes();
+  fqImg = null;
+  document.getElementById('fq-text').value = '';
+  document.getElementById('fq-preview').style.display = 'none';
+  document.getElementById('fq-img-input').value = '';
+  document.getElementById('form-quote-input').style.display = 'none';
+}
+
+function cancelFormQuote() {
+  fqImg = null;
+  document.getElementById('fq-text').value = '';
+  document.getElementById('form-quote-input').style.display = 'none';
+  document.getElementById('fq-preview').style.display = 'none';
+}
+
+function removeFormQuote(id) {
+  formQuotes = formQuotes.filter(q => q.id != id);
+  renderFormQuotes();
+}
+
+function renderFormQuotes() {
+  document.getElementById('form-quotes').innerHTML = formQuotes.map(q => `
+    <div class="quote-card">
+      ${q.image ? `<img src="${q.image}" alt="">` : ''}
+      ${q.text ? `<p>"${esc(q.text)}"</p>` : ''}
+      <button class="btn-del" onclick="removeFormQuote(${q.id})">×</button>
+    </div>`).join('');
+}
+
+// ── 책 저장 ──
+function saveBook() {
+  const title = document.getElementById('form-title').value.trim();
+  if (!title) return;
+  const book = {
+    id: Date.now(),
+    title,
+    author: document.getElementById('form-author').value.trim(),
+    date: document.getElementById('form-date').value,
+    rating: formRating,
+    review: document.getElementById('form-review').value.trim(),
+    cover: formCover,
+    coverColor: formColor,
+    quotes: formQuotes,
+  };
+  books.unshift(book);
+  persist();
+  goShelf();
+}
+
+// ── XSS 방지 ──
+function esc(str) {
+  return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── PWA 설치 ──
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  const banner = document.getElementById('install-banner');
+  if (!localStorage.getItem('install-dismissed')) {
+    banner.style.display = 'flex';
+  }
+});
+
+document.getElementById('install-btn').onclick = async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  document.getElementById('install-banner').style.display = 'none';
+};
+
+function dismissBanner() {
+  document.getElementById('install-banner').style.display = 'none';
+  localStorage.setItem('install-dismissed', '1');
+}
+
+window.addEventListener('appinstalled', () => {
+  document.getElementById('install-banner').style.display = 'none';
+});
+
+// ── 초기화 ──
+load();
+renderShelf();
+</script>
+</body>
+</html>
